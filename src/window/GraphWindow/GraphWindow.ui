@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>301</width>
-    <height>274</height>
+    <width>1500</width>
+    <height>720</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,50 +18,18 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>301</width>
-    <height>274</height>
+    <width>300</width>
+    <height>690</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>Graph</string>
   </property>
-  <widget class="QChartView" name="chartView">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>281</width>
-     <height>231</height>
-    </rect>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>281</width>
-     <height>231</height>
-    </size>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="buttonTest">
-   <property name="geometry">
-    <rect>
-     <x>210</x>
-     <y>250</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Test</string>
-   </property>
-  </widget>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout"/>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QChartView</class>
-   <extends>QGraphicsView</extends>
-   <header>QtCharts</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -1,5 +1,6 @@
 ../build/o/win32/main.o
 ../build/o/win32/mainwindow.o
+../build/o/win32/qcustomplot.o
 ../build/o/win32/Backend.o
 ../build/o/win32/CanMessage.o
 ../build/o/win32/CanTrace.o
@@ -33,6 +34,8 @@
 ../build/o/win32/GraphWindow.o
 ../build/o/win32/CanStatusWindow.o
 ../build/o/win32/RawTxWindow.o
+../build/o/win32/CmdStatusPanel.o
+../build/o/win32/dial.o
 ../build/o/win32/CandleApiDriver.o
 ../build/o/win32/CandleApiInterface.o
 ../build/o/win32/candle.o
@@ -40,6 +43,7 @@
 ../build/o/win32/CandleApiTiming.o
 ../build/o/win32/qrc_cangaroo.o
 ../build/o/win32/moc_mainwindow.o
+../build/o/win32/moc_qcustomplot.o
 ../build/o/win32/moc_Backend.o
 ../build/o/win32/moc_CanTrace.o
 ../build/o/win32/moc_MeasurementSetup.o
@@ -58,3 +62,5 @@
 ../build/o/win32/moc_GraphWindow.o
 ../build/o/win32/moc_CanStatusWindow.o
 ../build/o/win32/moc_RawTxWindow.o
+../build/o/win32/moc_CmdStatusPanel.o
+../build/o/win32/moc_dial.o

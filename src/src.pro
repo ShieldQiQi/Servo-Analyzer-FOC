@@ -5,6 +5,8 @@ QT += widgets
 QT += xml
 QT += charts
 
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
+
 TARGET = cangaroo
 TEMPLATE = app
 CONFIG += warn_on
@@ -21,8 +23,10 @@ macx:OBJECTS_DIR = ../build/o/mac
 
 SOURCES += main.cpp\
     mainwindow.cpp \
+    qcustomplot/qcustomplot.cpp \
 
 HEADERS  += mainwindow.h \
+    qcustomplot/qcustomplot.h \
 
 FORMS    += mainwindow.ui
 
@@ -37,9 +41,12 @@ include($$PWD/window/LogWindow/LogWindow.pri)
 include($$PWD/window/GraphWindow/GraphWindow.pri)
 include($$PWD/window/CanStatusWindow/CanStatusWindow.pri)
 include($$PWD/window/RawTxWindow/RawTxWindow.pri)
+include($$PWD/window/CmdStatusPanel/CmdStatusPanel.pri)
 
 unix:PKGCONFIG += libnl-3.0
 unix:PKGCONFIG += libnl-route-3.0
 unix:include($$PWD/driver/SocketCanDriver/SocketCanDriver.pri)
 
 win32:include($$PWD/driver/CandleApiDriver/CandleApiDriver.pri)
+
+DISTFILES +=

@@ -202,7 +202,7 @@
      <x>140</x>
      <y>220</y>
      <width>411</width>
-     <height>151</height>
+     <height>158</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="vbOptions">

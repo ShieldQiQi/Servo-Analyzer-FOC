@@ -1,4 +1,4 @@
-/*
+﻿/*
 
   Copyright (c) 2015, 2016 Hubert Denkmair <hubert@denkmair.de>
 
@@ -60,6 +60,7 @@ public slots:
     void addRawTxWidget(QMainWindow *parent=0);
     void addLogWidget(QMainWindow *parent=0);
     void addStatusWidget(QMainWindow *parent=0);
+    void addCmdStatusPanelWidget(QMainWindow *parent=0);
 
     bool showSetupDialog();
     void showAboutDialog();

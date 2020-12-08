@@ -1,8 +1,8 @@
-/*
+﻿/*
 
-  Copyright (c) 2015, 2016 Hubert Denkmair <hubert@denkmair.de>
+  Copyright (c) 2020 Xiaofang Qi <qi.shield95@foxmail.com>
 
-  This file is part of cangaroo.
+  This file is part of cangaroo specific for foc drive.
 
   cangaroo is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,22 +18,17 @@
   along with cangaroo.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-
 #pragma once
 
 #include <core/Backend.h>
 #include <core/ConfigurableWidget.h>
 #include <core/MeasurementSetup.h>
-#include <QtCharts/QChartView>
-#include <QtCharts/QtCharts>
-#include <QtCharts/QLineSeries>
+
+#include <qcustomplot/qcustomplot.h>
 
 namespace Ui {
 class GraphWindow;
 }
-
-class QDomDocument;
-class QDomElement;
 
 class GraphWindow : public ConfigurableWidget
 {
@@ -42,16 +37,32 @@ class GraphWindow : public ConfigurableWidget
 public:
     explicit GraphWindow(QWidget *parent, Backend &backend);
     ~GraphWindow();
-    virtual bool saveXML(Backend &backend, QDomDocument &xml, QDomElement &root);
-    virtual bool loadXML(Backend &backend, QDomElement &el);
+
+    // use qcustomplot for graph analyzer
+    int paint_Flag = 0;
+    int timer_count = 0;
+    QCustomPlot *customPlot;
+    QCPCurve *tar_Vel;
+    QCPCurve *actual_Vel;
+    QCPCurve *tar_Pos;
+    QCPCurve *actual_Pos;
+    QCPCurve *tar_Iq;
+    QCPCurve *actual_Iq;
+    QCPCurve *tar_Id;
+    QCPCurve *actual_Id;
+    QTimer   *dataTimer;
+
+    void myMoveEvent(QMouseEvent *event);
 
 private slots:
-    void testAddData(qreal new_yval);
+
+//    void on_Vel_clicked();
+//    void on_Pos_clicked();
+//    void on_Iq_clicked();
+//    void on_Id_clicked();
+    void realtimeDataSlot();
 
 private:
-    QLineSeries *data_series;
-    QChart *data_chart;
-    uint32_t testcount;
 
     Ui::GraphWindow *ui;
     Backend &_backend;

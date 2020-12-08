@@ -3,5 +3,15 @@
         <file>assets/mdibg.png</file>
         <file>assets/cangaroo.png</file>
         <file>assets/cangaroo.svg</file>
+        <file>assets/manipulator.jpg</file>
+        <file>assets/manipulator_colored.jpg</file>
+        <file>assets/warning_green.png</file>
+        <file>assets/warning_orange.png</file>
+        <file>assets/warning_red.png</file>
+        <file>assets/background.png</file>
+        <file>assets/needle.png</file>
+        <file>assets/needle_shadow.png</file>
+        <file>assets/overlay.png</file>
+        <file>assets/quit.png</file>
     </qresource>
 </RCC>

@@ -1,8 +1,8 @@
-/*
+﻿/*
 
-  Copyright (c) 2015, 2016 Hubert Denkmair <hubert@denkmair.de>
+  Copyright (c) 2020 Xiaofang Qi <qi.shield95@foxmail.com>
 
-  This file is part of cangaroo.
+  This file is part of cangaroo specific for foc drive.
 
   cangaroo is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,12 +22,9 @@
 #include "GraphWindow.h"
 #include "ui_GraphWindow.h"
 
-#include <QDomDocument>
-
 #include <core/Backend.h>
-#include <QtCharts/QChartView>
 
-#define NUM_GRAPH_POINTS 20
+double velocity = 0;
 
 GraphWindow::GraphWindow(QWidget *parent, Backend &backend) :
     ConfigurableWidget(parent),
@@ -36,81 +33,137 @@ GraphWindow::GraphWindow(QWidget *parent, Backend &backend) :
 {
     ui->setupUi(this);
 
+    customPlot = new QCustomPlot(this);
 
-    data_series = new QLineSeries();
+    tar_Vel = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+    tar_Vel->setName("tar_Vel");
+    tar_Vel->setPen(QPen(Qt::blue,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    actual_Vel = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+    actual_Vel->setName("actual_Vel");
+    actual_Vel->setPen(QPen(Qt::red,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    tar_Pos = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+    tar_Pos->setName("tar_Pos");
+    tar_Pos->setPen(QPen(Qt::darkYellow,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    actual_Pos = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+    actual_Pos->setName("actual_Pos");
+    actual_Pos->setPen(QPen(Qt::darkCyan,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    tar_Iq = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+    tar_Iq->setName("tar_Iq");
+    tar_Iq->setPen(QPen(Qt::darkYellow,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    actual_Iq = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+    actual_Iq->setName("actual_Iq");
+    actual_Iq->setPen(QPen(Qt::darkCyan,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    tar_Id = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+    tar_Id->setName("tar_Id");
+    tar_Id->setPen(QPen(Qt::darkYellow,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    actual_Id = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+    actual_Id->setName("actual_Id");
+    actual_Id->setPen(QPen(Qt::darkCyan,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
 
-    for(uint32_t i=0; i<NUM_GRAPH_POINTS; i++)
-    {
-        data_series->append(i, i);
-    }
+    customPlot->setGeometry(5,5,1150,700);
+    customPlot->legend->setVisible(true);
+    customPlot->legend->setBrush(QColor(255,255,255,0));
+    customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    customPlot->rescaleAxes();
+    // add the cursorXY
+    customPlot->addGraph();
+    customPlot->graph(0)->setName("Cursor_x");
+    customPlot->addGraph();
+    customPlot->graph(1)->setName("Cursor_y");
+    // add realtime data demo
+    customPlot->addGraph();
+    customPlot->graph(2)->setPen(QPen(QColor(40, 110, 255)));
+    customPlot->addGraph();
+    customPlot->graph(3)->setPen(QPen(QColor(255, 110, 40)));
+    QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
+    timeTicker->setTimeFormat("%h:%m:%s");
+    customPlot->xAxis->setTicker(timeTicker);
+    customPlot->axisRect()->setupFullAxesBox();
+    customPlot->yAxis->setRange(-1.2, 1.2);
+    // make left and bottom axes transfer their ranges to right and top axes:
+    connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
+    connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
+    // setup a timer that repeatedly calls MainWindow::realtimeDataSlot:
+    dataTimer = new QTimer(this);
+    connect(dataTimer, SIGNAL(timeout()), this, SLOT(realtimeDataSlot()));
+    dataTimer->start(0); // Interval 0 means to refresh as fast as possible
 
-    data_chart = new QChart();
-    data_chart->legend()->hide();
-    data_chart->addSeries(data_series);
-    data_chart->createDefaultAxes();
-    data_chart->setTitle("Simple line chart example");
-
-
-
-    ui->chartView->setChart(data_chart);
-    ui->chartView->setRenderHint(QPainter::Antialiasing);
-
-//    connect(ui->buttonTest, SIGNAL(released()), this, SLOT(testAddData()));
-
+    customPlot->replot();
+    connect(customPlot,&QCustomPlot::mouseMove,this,&GraphWindow::myMoveEvent);
 
 }
 
-void GraphWindow::testAddData(qreal new_yval)
+void GraphWindow::realtimeDataSlot()
 {
-    QLineSeries* serbuf = new QLineSeries();
-
-    // Start autorange at first point
-    qreal ymin = data_series->at(1).y();
-    qreal ymax = ymin;
-
-    // Copy all points but first one
-    for(uint32_t i=1; i < data_series->count(); i++)
+    static QTime time(QTime::currentTime());
+    // calculate two new data points:
+    double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
+    static double lastPointKey = 0;
+    if (key-lastPointKey > 0.002) // at most add point every 2 ms
     {
-        serbuf->append(data_series->at(i).x()-1, data_series->at(i).y());
-
-        // Autoranging
-        if(data_series->at(i).y() < ymin)
-            ymin = data_series->at(i).y();
-        if(data_series->at(i).y() > ymax)
-            ymax = data_series->at(i).y();
+      // add data to lines:
+      velocity = qSin(key)+qrand()/(double)RAND_MAX*1*qSin(key/0.3843);
+      customPlot->graph(2)->addData(key, velocity);
+      customPlot->graph(3)->addData(key, qCos(key)+qrand()/(double)RAND_MAX*0.5*qSin(key/0.4364));
+      // rescale value (vertical) axis to fit the current data:
+      //ui->customPlot->graph(2)->rescaleValueAxis();
+      //ui->customPlot->graph(3)->rescaleValueAxis(true);
+      lastPointKey = key;
     }
+    // make key axis range scroll with the data (at a constant range size of 8):
+    customPlot->xAxis->setRange(key, 16, Qt::AlignRight);
+    customPlot->replot();
 
-    // Apply Y margin and set range
-    ymin -= 1;
-    ymax += 1;
-    data_chart->axisY()->setRange(ymin, ymax);
+}
 
-    // Add new point in
-    serbuf->append(serbuf->points().at(serbuf->count()-1).x() + 1, new_yval);
-    testcount++;
+void GraphWindow::myMoveEvent(QMouseEvent *event)
+{
+    double x = event->pos().x();
+    double x_ = customPlot->xAxis->pixelToCoord(x);
 
-    // Replace data
-    data_series->replace(serbuf->points());
+    double y = event->pos().y();
+    double y_ = customPlot->yAxis->pixelToCoord(y);
 
-    delete serbuf;
+    //更新光标位置
+    QVector<double> x_1(101), y_1(101);
+    for (int i=0; i<101; ++i)
+    {
+        x_1[i] = customPlot->xAxis->range().lower+
+                i*(customPlot->xAxis->range().upper-customPlot->xAxis->range().lower)/101;
+        y_1[i] = y_;
+    }
+    customPlot->graph(0)->setData(x_1,y_1);
+    customPlot->graph(0)->setPen(QPen(Qt::green,1.5, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin));
+
+    QVector<double> x_2(101), y_2(101);
+    for (int i=0; i<101; ++i)
+    {
+        x_2[i] = x_;
+        y_2[i] = customPlot->yAxis->range().lower+
+                i*(customPlot->yAxis->range().upper-customPlot->yAxis->range().lower)/101;
+    }
+    customPlot->graph(1)->setData(x_2,y_2);
+    customPlot->graph(1)->setPen(QPen(Qt::green,1.5, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin));
+
+    customPlot->replot();
+
+    QString *str = new QString;
+    *str = QString("Hello QCustomplot!");
+    QToolTip::showText(cursor().pos(),*str);
+    delete str;
 }
 
 GraphWindow::~GraphWindow()
 {
     delete ui;
-    delete data_chart;
-    delete data_series;
-}
-
-bool GraphWindow::saveXML(Backend &backend, QDomDocument &xml, QDomElement &root)
-{
-    if (!ConfigurableWidget::saveXML(backend, xml, root)) { return false; }
-    root.setAttribute("type", "GraphWindow");
-    return true;
-}
-
-bool GraphWindow::loadXML(Backend &backend, QDomElement &el)
-{
-    if (!ConfigurableWidget::loadXML(backend, el)) { return false; }
-    return true;
+    delete customPlot;
+    delete tar_Vel;
+    delete actual_Vel;
+    delete tar_Pos;
+    delete actual_Pos;
+    delete tar_Iq;
+    delete actual_Iq;
+    delete tar_Id;
+    delete actual_Id;
+    delete dataTimer;
 }

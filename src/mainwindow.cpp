@@ -1,4 +1,4 @@
-/*
+﻿/*
 
   Copyright (c) 2015, 2016 Hubert Denkmair <hubert@denkmair.de>
 
@@ -36,6 +36,7 @@
 #include <window/GraphWindow/GraphWindow.h>
 #include <window/CanStatusWindow/CanStatusWindow.h>
 #include <window/RawTxWindow/RawTxWindow.h>
+#include <window/CmdStatusPanel/CmdStatusPanel.h>
 
 #if defined(__linux__)
 #include <driver/SocketCanDriver/SocketCanDriver.h>
@@ -50,7 +51,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     _baseWindowTitle = windowTitle();
 
-    QIcon icon(":/assets/cangaroo.png");
+    QIcon icon(":/assets/manipulator_colored.jpg");
     setWindowIcon(icon);
 
     connect(ui->action_Trace_View, SIGNAL(triggered()), this, SLOT(createTraceWindow()));
@@ -59,6 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionGraph_View_2, SIGNAL(triggered()), this, SLOT(addGraphWidget()));
     connect(ui->actionSetup, SIGNAL(triggered()), this, SLOT(showSetupDialog()));
     connect(ui->actionTransmit_View, SIGNAL(triggered()), this, SLOT(addRawTxWidget()));
+    connect(ui->actionCmdStatusPanel_View, SIGNAL(triggered()), this, SLOT(addCmdStatusPanelWidget()));
 
     connect(ui->actionStart_Measurement, SIGNAL(triggered()), this, SLOT(startMeasurement()));
     connect(ui->actionStop_Measurement, SIGNAL(triggered()), this, SLOT(stopMeasurement()));
@@ -265,7 +267,9 @@ void MainWindow::newWorkspace()
         stopAndClearMeasurement();
         clearWorkspace();
         createTraceWindow();
+        addCmdStatusPanelWidget();
         addRawTxWidget();
+        addGraphWidget();
         backend().setDefaultSetup();
     }
 }
@@ -303,7 +307,7 @@ void MainWindow::setWorkspaceModified(bool modified)
 {
     _workspaceModified = modified;
 
-    QString title = _baseWindowTitle;
+    QString title = _baseWindowTitle + " specific for foc analyzer";
     if (!_workspaceFileName.isEmpty()) {
         QFileInfo fi(_workspaceFileName);
         title += " - " + fi.fileName();
@@ -368,9 +372,9 @@ void MainWindow::addGraphWidget(QMainWindow *parent)
     if (!parent) {
         parent = currentTab();
     }
-    QDockWidget *dock = new QDockWidget("Graph", parent);
+    QDockWidget *dock = new QDockWidget("Graph Analyzer", parent);
     dock->setWidget(new GraphWindow(dock, backend()));
-    parent->addDockWidget(Qt::BottomDockWidgetArea, dock);
+    parent->addDockWidget(Qt::RightDockWidgetArea, dock);
 }
 
 void MainWindow::addRawTxWidget(QMainWindow *parent)
@@ -383,6 +387,15 @@ void MainWindow::addRawTxWidget(QMainWindow *parent)
     parent->addDockWidget(Qt::BottomDockWidgetArea, dock);
 }
 
+void MainWindow::addCmdStatusPanelWidget(QMainWindow *parent)
+{
+    if (!parent) {
+        parent = currentTab();
+    }
+    QDockWidget *dock = new QDockWidget("CmdStatusPanel", parent);
+    dock->setWidget(new CmdStatusPanelWindow(dock, backend()));
+    parent->addDockWidget(Qt::LeftDockWidgetArea, dock);
+}
 
 void MainWindow::addLogWidget(QMainWindow *parent)
 {
@@ -427,14 +440,17 @@ bool MainWindow::showSetupDialog()
 void MainWindow::showAboutDialog()
 {
     QMessageBox::about(this,
-       "About cangaroo",
-       "cangaroo\n"
-       "open source can bus analyzer\n"
+       "About cangaroo specific for foc analyzer",
+       "cangaroo specific for foc analyzer\n"
+       "open source can bus analyzer specific for foc analyzer\n"
        "\n"
-       "version 0.2.3\n"
+       "version 0.2.3/0.0.1\n"
        "\n"
        "(c)2015-2017 Hubert Denkmair"
+       "\n"
        "(c)2018 Ethan Zonca"
+       "\n"
+       "(c)2020 齐晓放 qi.shield95@foxmail.com"
     );
 }
 
