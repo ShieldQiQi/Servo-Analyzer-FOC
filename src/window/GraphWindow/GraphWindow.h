@@ -23,8 +23,11 @@
 #include <core/Backend.h>
 #include <core/ConfigurableWidget.h>
 #include <core/MeasurementSetup.h>
+#include <QFile>
+#include <QTextStream>
 
 #include <qcustomplot/qcustomplot.h>
+#include <QDebug>
 
 namespace Ui {
 class GraphWindow;
@@ -51,6 +54,13 @@ public:
     QCPCurve *tar_Id;
     QCPCurve *actual_Id;
     QTimer   *dataTimer;
+    QTimer   *easterEggTimer;
+    short    frameCount = 0;
+
+    QTextStream *textStream;
+    QFile *file;
+    bool isFileOpened = 0;
+    bool isPlayEasterEgg  = 0;
 
     void myMoveEvent(QMouseEvent *event);
 
@@ -61,6 +71,11 @@ private slots:
 //    void on_Iq_clicked();
 //    void on_Id_clicked();
     void realtimeDataSlot();
+    void easterEggDataSlot();
+
+public slots:
+
+    void startEasterEggSlot();
 
 private:
 

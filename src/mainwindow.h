@@ -24,6 +24,7 @@
 #include <QMainWindow>
 #include <QList>
 #include <core/Backend.h>
+#include <window/GraphWindow/GraphWindow.h>
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -47,8 +48,11 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
+
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+    GraphWindow *graphWindow;
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
@@ -57,6 +61,7 @@ public slots:
     QMainWindow *createTraceWindow(QString title=QString());
     QMainWindow *createGraphWindow(QString title=QString());
     void addGraphWidget(QMainWindow *parent=0);
+    void emitEasterEggTriggered(void);
     void addRawTxWidget(QMainWindow *parent=0);
     void addLogWidget(QMainWindow *parent=0);
     void addStatusWidget(QMainWindow *parent=0);
@@ -82,6 +87,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+
     SetupDialog *_setupDlg;
 
     bool _workspaceModified;

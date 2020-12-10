@@ -57,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->action_Trace_View, SIGNAL(triggered()), this, SLOT(createTraceWindow()));
     connect(ui->actionLog_View, SIGNAL(triggered()), this, SLOT(addLogWidget()));
     connect(ui->actionGraph_View, SIGNAL(triggered()), this, SLOT(createGraphWindow()));
+    connect(ui->actionYes_U_finally_find_me, SIGNAL(triggered()), this, SLOT(emitEasterEggTriggered()));
     connect(ui->actionGraph_View_2, SIGNAL(triggered()), this, SLOT(addGraphWidget()));
     connect(ui->actionSetup, SIGNAL(triggered()), this, SLOT(showSetupDialog()));
     connect(ui->actionTransmit_View, SIGNAL(triggered()), this, SLOT(addRawTxWidget()));
@@ -373,8 +374,14 @@ void MainWindow::addGraphWidget(QMainWindow *parent)
         parent = currentTab();
     }
     QDockWidget *dock = new QDockWidget("Graph Analyzer", parent);
-    dock->setWidget(new GraphWindow(dock, backend()));
+    graphWindow = new GraphWindow(dock, backend());
+    dock->setWidget(graphWindow);
     parent->addDockWidget(Qt::RightDockWidgetArea, dock);
+}
+
+void MainWindow::emitEasterEggTriggered(void)
+{
+    graphWindow->startEasterEggSlot();
 }
 
 void MainWindow::addRawTxWidget(QMainWindow *parent)

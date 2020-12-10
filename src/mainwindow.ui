@@ -105,6 +105,7 @@
      <addaction name="actionGraph_View_2"/>
      <addaction name="actionTransmit_View"/>
      <addaction name="actionCmdStatusPanel_View"/>
+     <addaction name="actionYes_U_finally_find_me"/>
     </widget>
     <addaction name="menu_New"/>
    </widget>
@@ -267,6 +268,11 @@
   <action name="actionCmdStatusPanel_View">
    <property name="text">
     <string>CmdStatusPanel View</string>
+   </property>
+  </action>
+  <action name="actionYes_U_finally_find_me">
+   <property name="text">
+    <string>Yes! U finally find me!</string>
    </property>
   </action>
  </widget>

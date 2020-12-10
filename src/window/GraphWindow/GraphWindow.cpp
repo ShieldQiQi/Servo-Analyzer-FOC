@@ -80,6 +80,23 @@ GraphWindow::GraphWindow(QWidget *parent, Backend &backend) :
     customPlot->xAxis->setTicker(timeTicker);
     customPlot->axisRect()->setupFullAxesBox();
     customPlot->yAxis->setRange(-1.2, 1.2);
+
+    // add a Easter egg (●'◡'●)
+    customPlot->addGraph();
+    customPlot->graph(4)->setPen(QColor(50, 50, 50, 255));
+    customPlot->graph(4)->setLineStyle(QCPGraph::lsNone);
+    customPlot->graph(4)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDiamond, 4));
+    customPlot->graph(4)->setName("極楽浄土");
+    file = new QFile("E:/FOC-Analyzer-CANOPEN/src/assets/pointXY.csv");
+    textStream = new QTextStream;
+    if(!file->open(QFile::ReadOnly | QFile::Text)){
+        QMessageBox::information(this,"","Can not load the csv file",NULL);
+        isFileOpened = 0;
+    }else{
+        isFileOpened = 1;
+        textStream->setDevice(file);
+    }
+
     // make left and bottom axes transfer their ranges to right and top axes:
     connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
     connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
@@ -88,6 +105,9 @@ GraphWindow::GraphWindow(QWidget *parent, Backend &backend) :
     connect(dataTimer, SIGNAL(timeout()), this, SLOT(realtimeDataSlot()));
     dataTimer->start(0); // Interval 0 means to refresh as fast as possible
 
+    easterEggTimer = new QTimer(this);
+    connect(easterEggTimer, SIGNAL(timeout()), this, SLOT(easterEggDataSlot()));
+
     customPlot->replot();
     connect(customPlot,&QCustomPlot::mouseMove,this,&GraphWindow::myMoveEvent);
 
@@ -95,25 +115,27 @@ GraphWindow::GraphWindow(QWidget *parent, Backend &backend) :
 
 void GraphWindow::realtimeDataSlot()
 {
-    static QTime time(QTime::currentTime());
-    // calculate two new data points:
-    double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
-    static double lastPointKey = 0;
-    if (key-lastPointKey > 0.002) // at most add point every 2 ms
+    if(!isPlayEasterEgg)
     {
-      // add data to lines:
-      velocity = qSin(key)+qrand()/(double)RAND_MAX*1*qSin(key/0.3843);
-      customPlot->graph(2)->addData(key, velocity);
-      customPlot->graph(3)->addData(key, qCos(key)+qrand()/(double)RAND_MAX*0.5*qSin(key/0.4364));
-      // rescale value (vertical) axis to fit the current data:
-      //ui->customPlot->graph(2)->rescaleValueAxis();
-      //ui->customPlot->graph(3)->rescaleValueAxis(true);
-      lastPointKey = key;
+        static QTime time(QTime::currentTime());
+        // calculate two new data points:
+        double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
+        static double lastPointKey = 0;
+        if (key-lastPointKey > 0.002) // at most add point every 2 ms
+        {
+          // add data to lines:
+          velocity = qSin(key)+qrand()/(double)RAND_MAX*1*qSin(key/0.3843);
+          customPlot->graph(2)->addData(key, velocity);
+          customPlot->graph(3)->addData(key, qCos(key)+qrand()/(double)RAND_MAX*0.5*qSin(key/0.4364));
+          // rescale value (vertical) axis to fit the current data:
+          //ui->customPlot->graph(2)->rescaleValueAxis();
+          //ui->customPlot->graph(3)->rescaleValueAxis(true);
+          lastPointKey = key;
+        }
+        // make key axis range scroll with the data (at a constant range size of 8):
+        customPlot->xAxis->setRange(key, 16, Qt::AlignRight);
+        customPlot->replot();
     }
-    // make key axis range scroll with the data (at a constant range size of 8):
-    customPlot->xAxis->setRange(key, 16, Qt::AlignRight);
-    customPlot->replot();
-
 }
 
 void GraphWindow::myMoveEvent(QMouseEvent *event)
@@ -153,6 +175,42 @@ void GraphWindow::myMoveEvent(QMouseEvent *event)
     delete str;
 }
 
+void GraphWindow::easterEggDataSlot()
+{
+    // read the csv pointXYdata
+    // read a frame each slot
+    if(isFileOpened)
+    {
+        // read a line which contains the data in this frame
+        QStringList stringList = textStream->readLine().split(",");
+        QVector<double> point_x((stringList.size()-1)/2), point_y((stringList.size()-1)/2);
+        for (int i=0; i<stringList.size()-1-1; i+=2)
+        {
+            point_y[i/2] = (1.2-stringList[i].toShort()/1080.0*2.4);
+            point_x[i/2] = (stringList[i+1].toShort()/1920.0*16);
+        }
+        customPlot->graph(4)->setData(point_x,point_y);
+        customPlot->replot();
+    }
+    // the easter egg is finished
+    if(++frameCount == 675){
+        frameCount = 0;
+        isPlayEasterEgg = 0;
+        textStream->seek(0);
+        easterEggTimer->stop();
+    }
+}
+
+void GraphWindow::startEasterEggSlot()
+{
+    if(frameCount == 0){
+        easterEggTimer->start(50);
+        isPlayEasterEgg = 1;
+        customPlot->xAxis->setRange(16, 16, Qt::AlignRight);
+        customPlot->replot();
+    }
+}
+
 GraphWindow::~GraphWindow()
 {
     delete ui;
@@ -166,4 +224,8 @@ GraphWindow::~GraphWindow()
     delete tar_Id;
     delete actual_Id;
     delete dataTimer;
+
+    delete easterEggTimer;
+    delete file;
+    delete textStream;
 }
