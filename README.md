@@ -15,7 +15,7 @@ https://github.com/ShieldQiQi/BLDC_PMSM_FOC_DRIVER
 
 - Demo Pictures
 
-![demo1](https://github.com/ShieldQiQi/Servo-Analyzer-FOC/tree/main/Demo_Pictures/UI_1.jpg)
+![demo1](https://github.com/ShieldQiQi/Servo-Analyzer-FOC/blob/main/DemoPictures/UI_1.jpg)
 
-![demo2](https://github.com/ShieldQiQi/Servo-Analyzer-FOC/tree/main/Demo_Pictures/UI_2.jpg)
+![demo1](https://github.com/ShieldQiQi/Servo-Analyzer-FOC/blob/main/DemoPictures/UI_2.jpg)
 
