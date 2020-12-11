@@ -1,4 +1,4 @@
-/*
+﻿/*
 
   Copyright (c) 2015, 2016 Hubert Denkmair <hubert@denkmair.de>
 
@@ -56,10 +56,10 @@ TraceWindow::TraceWindow(QWidget *parent, Backend &backend) :
     ui->tree->setColumnWidth(1, 70);
     ui->tree->setColumnWidth(2, 50);
     ui->tree->setColumnWidth(3, 90);
-    ui->tree->setColumnWidth(4, 200);
-    ui->tree->setColumnWidth(5, 200);
+    ui->tree->setColumnWidth(4, 90);
+    ui->tree->setColumnWidth(5, 90);
     ui->tree->setColumnWidth(6, 50);
-    ui->tree->setColumnWidth(7, 200);
+    ui->tree->setColumnWidth(7, 400);
     ui->tree->sortByColumn(BaseTraceViewModel::column_canid, Qt::AscendingOrder);
 
     ui->cbTimestampMode->addItem("absolute", 0);

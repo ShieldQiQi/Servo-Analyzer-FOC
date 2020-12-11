@@ -25,6 +25,8 @@
 #include <QList>
 #include <core/Backend.h>
 #include <window/GraphWindow/GraphWindow.h>
+#include <window/CmdStatusPanel/CmdStatusPanel.h>
+#include <window/TraceWindow/TraceWindow.h>
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -53,6 +55,8 @@ public:
     ~MainWindow();
 
     GraphWindow *graphWindow;
+    CmdStatusPanelWindow *cmdStatusPanelWindow;
+    TraceWindow *traceWindow;
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
@@ -61,7 +65,6 @@ public slots:
     QMainWindow *createTraceWindow(QString title=QString());
     QMainWindow *createGraphWindow(QString title=QString());
     void addGraphWidget(QMainWindow *parent=0);
-    void emitEasterEggTriggered(void);
     void addRawTxWidget(QMainWindow *parent=0);
     void addLogWidget(QMainWindow *parent=0);
     void addStatusWidget(QMainWindow *parent=0);

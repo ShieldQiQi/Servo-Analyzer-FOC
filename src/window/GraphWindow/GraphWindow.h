@@ -29,6 +29,14 @@
 #include <qcustomplot/qcustomplot.h>
 #include <QDebug>
 
+
+// the CAN-Lib header files
+#include <core/Backend.h>
+#include <core/ConfigurableWidget.h>
+#include <core/MeasurementSetup.h>
+#include <driver/CanInterface.h>
+#include <core/CanTrace.h>
+
 namespace Ui {
 class GraphWindow;
 }
@@ -62,7 +70,22 @@ public:
     bool isFileOpened = 0;
     bool isPlayEasterEgg  = 0;
 
+    uint32_t checkBoxStateBus = 0;
+
+    float xAxisRange = 5;
+    float targetPos = 0.0;
+    float targetVel = 0.0;
+    float actualPos = 0.0;
+    float actualVel = 0.0;
+    float targetId = 0.0;
+    float targetIq = 0.0;
+    float actualId = 0.0;
+    float actualIq = 0.0;
+
+    void sendCmdCANMsg(void);
+
     void myMoveEvent(QMouseEvent *event);
+    Ui::GraphWindow *ui;
 
 private slots:
 
@@ -77,8 +100,25 @@ public slots:
 
     void startEasterEggSlot();
 
+    void tarPosDataSlot(int state);
+    void actuPosDataSlot(int state);
+    void actuVelDataSlot(int state);
+    void tarVelDataSlot(int state);
+    void tarIqDataSlot(int state);
+    void actuIqDataSlot(int state);
+    void tarIdDataSlot(int state);
+    void actuIdDataSlot(int state);
+    void posModeChanged(int state);
+    void dynamicModeChanged(int state);
+    void manualModeChanged(int state);
+
+    void sliderXValueChanged(int value);
+    void sliderPosValueChanged(int value);
+    void sliderVelValueChanged(int value);
+
+    void DecodeCANMsg(QString string);
+
 private:
 
-    Ui::GraphWindow *ui;
     Backend &_backend;
 };

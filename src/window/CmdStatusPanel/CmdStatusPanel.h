@@ -25,8 +25,9 @@
 #include <core/ConfigurableWidget.h>
 #include <core/MeasurementSetup.h>
 #include <QTimer>
-
+#include "ui_CmdStatusPanel.h"
 #include "dial.h"
+#include <QDebug>
 
 namespace Ui {
 class CmdStatusPanelWindow;
@@ -45,10 +46,12 @@ public:
 
     Dial *dial;
     QTimer   *timer;
+
+    Ui::CmdStatusPanelWindow *ui;
+
 private slots:
 
 
 private:
-    Ui::CmdStatusPanelWindow *ui;
     Backend &_backend;
 };

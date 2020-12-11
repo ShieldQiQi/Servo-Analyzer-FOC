@@ -35,27 +35,27 @@ GraphWindow::GraphWindow(QWidget *parent, Backend &backend) :
 
     customPlot = new QCustomPlot(this);
 
-    tar_Vel = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
-    tar_Vel->setName("tar_Vel");
-    tar_Vel->setPen(QPen(Qt::blue,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    actual_Vel = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
-    actual_Vel->setName("actual_Vel");
-    actual_Vel->setPen(QPen(Qt::red,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     tar_Pos = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
     tar_Pos->setName("tar_Pos");
-    tar_Pos->setPen(QPen(Qt::darkYellow,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    tar_Pos->setPen(QPen(Qt::red,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     actual_Pos = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
     actual_Pos->setName("actual_Pos");
-    actual_Pos->setPen(QPen(Qt::darkCyan,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    actual_Pos->setPen(QPen(Qt::blue,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    tar_Vel = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+    tar_Vel->setName("tar_Vel");
+    tar_Vel->setPen(QPen(Qt::darkGreen,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    actual_Vel = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+    actual_Vel->setName("actual_Vel");
+    actual_Vel->setPen(QPen(Qt::yellow,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     tar_Iq = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
     tar_Iq->setName("tar_Iq");
-    tar_Iq->setPen(QPen(Qt::darkYellow,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    tar_Iq->setPen(QPen(Qt::cyan,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     actual_Iq = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
     actual_Iq->setName("actual_Iq");
-    actual_Iq->setPen(QPen(Qt::darkCyan,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    actual_Iq->setPen(QPen(Qt::darkYellow,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     tar_Id = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
     tar_Id->setName("tar_Id");
-    tar_Id->setPen(QPen(Qt::darkYellow,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    tar_Id->setPen(QPen(Qt::magenta,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     actual_Id = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
     actual_Id->setName("actual_Id");
     actual_Id->setPen(QPen(Qt::darkCyan,1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
@@ -70,23 +70,19 @@ GraphWindow::GraphWindow(QWidget *parent, Backend &backend) :
     customPlot->graph(0)->setName("Cursor_x");
     customPlot->addGraph();
     customPlot->graph(1)->setName("Cursor_y");
-    // add realtime data demo
-    customPlot->addGraph();
-    customPlot->graph(2)->setPen(QPen(QColor(40, 110, 255)));
-    customPlot->addGraph();
-    customPlot->graph(3)->setPen(QPen(QColor(255, 110, 40)));
+
     QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
     timeTicker->setTimeFormat("%h:%m:%s");
     customPlot->xAxis->setTicker(timeTicker);
     customPlot->axisRect()->setupFullAxesBox();
-    customPlot->yAxis->setRange(-1.2, 1.2);
+    customPlot->yAxis->setRange(-5, 5);
 
     // add a Easter egg (●'◡'●)
     customPlot->addGraph();
-    customPlot->graph(4)->setPen(QColor(50, 50, 50, 255));
-    customPlot->graph(4)->setLineStyle(QCPGraph::lsNone);
-    customPlot->graph(4)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDiamond, 4));
-    customPlot->graph(4)->setName("極楽浄土");
+    customPlot->graph(2)->setPen(QColor(50, 50, 50, 255));
+    customPlot->graph(2)->setLineStyle(QCPGraph::lsNone);
+    customPlot->graph(2)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDiamond, 4));
+    customPlot->graph(2)->setName("極楽浄土");
     file = new QFile("E:/FOC-Analyzer-CANOPEN/src/assets/pointXY.csv");
     textStream = new QTextStream;
     if(!file->open(QFile::ReadOnly | QFile::Text)){
@@ -121,21 +117,125 @@ void GraphWindow::realtimeDataSlot()
         // calculate two new data points:
         double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
         static double lastPointKey = 0;
-        if (key-lastPointKey > 0.002) // at most add point every 2 ms
+        if (key-lastPointKey > 0.010) // at most add point every 10 ms
         {
-          // add data to lines:
-          velocity = qSin(key)+qrand()/(double)RAND_MAX*1*qSin(key/0.3843);
-          customPlot->graph(2)->addData(key, velocity);
-          customPlot->graph(3)->addData(key, qCos(key)+qrand()/(double)RAND_MAX*0.5*qSin(key/0.4364));
-          // rescale value (vertical) axis to fit the current data:
-          //ui->customPlot->graph(2)->rescaleValueAxis();
-          //ui->customPlot->graph(3)->rescaleValueAxis(true);
-          lastPointKey = key;
+            // add data to lines:
+            velocity = qSin(key);
+
+            if((checkBoxStateBus & 786432) >> 18 == 2)
+            {
+                if((checkBoxStateBus & 3) == 2)
+                    tar_Pos->addData(key,targetPos);
+                if((checkBoxStateBus & 12) >> 2 == 2)
+                    actual_Pos->addData(key,0.5*velocity);
+                if((checkBoxStateBus & 48) >> 4 == 2)
+                    tar_Vel->addData(key,targetVel);
+                if((checkBoxStateBus & 192) >> 6 == 2)
+                    actual_Vel->addData(key,0.8*velocity);
+                if((checkBoxStateBus & 768) >> 8 == 2)
+                    tar_Iq->addData(key,0.6);
+                if((checkBoxStateBus & 3072) >> 10 == 2)
+                    actual_Iq->addData(key,0.6*velocity);
+                if((checkBoxStateBus & 12288) >> 12 == 2)
+                    tar_Id->addData(key,0.7);
+                if((checkBoxStateBus & 49152) >> 14 == 2)
+                    actual_Id->addData(key,1.2*velocity);
+
+                // rescale value (vertical) axis to fit the current data:
+                tar_Pos->rescaleValueAxis(true);
+
+                // make key axis range scroll with the data (at a constant range size of 8):
+                customPlot->xAxis->setRange(key, xAxisRange, Qt::AlignRight);
+                customPlot->replot();
+            }
+
+            lastPointKey = key;
         }
-        // make key axis range scroll with the data (at a constant range size of 8):
-        customPlot->xAxis->setRange(key, 16, Qt::AlignRight);
-        customPlot->replot();
     }
+}
+
+// save memory, from me on!
+void GraphWindow::tarPosDataSlot(int state)
+{
+    checkBoxStateBus &= (uint32_t)(0xFFFFFFFF-3);
+    checkBoxStateBus |= (uint32_t)state;
+}
+
+void GraphWindow::actuPosDataSlot(int state)
+{
+    checkBoxStateBus &= (uint32_t)(0xFFFFFFFF-12);
+    checkBoxStateBus |= ((uint32_t)state << 2);
+}
+
+void GraphWindow::tarVelDataSlot(int state)
+{
+    checkBoxStateBus &= (uint32_t)(0xFFFFFFFF-48);
+    checkBoxStateBus |= ((uint32_t)state << 4);
+}
+
+void GraphWindow::actuVelDataSlot(int state)
+{
+    checkBoxStateBus &= (uint32_t)(0xFFFFFFFF-192);
+    checkBoxStateBus |= ((uint32_t)state << 6);
+}
+
+void GraphWindow::tarIqDataSlot(int state)
+{
+    checkBoxStateBus &= (uint32_t)(0xFFFFFFFF-768);
+    checkBoxStateBus |= ((uint32_t)state << 8);
+}
+
+void GraphWindow::actuIqDataSlot(int state)
+{
+    checkBoxStateBus &= (uint32_t)(0xFFFFFFFF-3072);
+    checkBoxStateBus |= ((uint32_t)state << 10);
+}
+
+void GraphWindow::tarIdDataSlot(int state)
+{
+    checkBoxStateBus &= (uint32_t)(0xFFFFFFFF-12288);
+    checkBoxStateBus |= ((uint32_t)state << 12);
+}
+
+void GraphWindow::actuIdDataSlot(int state)
+{
+    checkBoxStateBus &= (uint32_t)(0xFFFFFFFF-49152);
+    checkBoxStateBus |= ((uint32_t)state << 14);
+}
+
+void GraphWindow::posModeChanged(int state)
+{
+    checkBoxStateBus &= (uint32_t)(0xFFFFFFFF-196608);
+    checkBoxStateBus |= ((uint32_t)state << 16);
+}
+
+void GraphWindow::dynamicModeChanged(int state)
+{
+    checkBoxStateBus &= (uint32_t)(0xFFFFFFFF-786432);
+    checkBoxStateBus |= ((uint32_t)state << 18);
+}
+
+void GraphWindow::manualModeChanged(int state)
+{
+    checkBoxStateBus &= (uint32_t)(0xFFFFFFFF-3145728);
+    checkBoxStateBus |= ((uint32_t)state << 20);
+}
+
+void GraphWindow::sliderXValueChanged(int value)
+{
+    xAxisRange = value+1;
+}
+
+void GraphWindow::sliderPosValueChanged(int value)
+{
+    targetPos = value/99.0*360;
+    sendCmdCANMsg();
+}
+
+void GraphWindow::sliderVelValueChanged(int value)
+{
+    targetVel = value/99.0*20;
+    sendCmdCANMsg();
 }
 
 void GraphWindow::myMoveEvent(QMouseEvent *event)
@@ -155,7 +255,7 @@ void GraphWindow::myMoveEvent(QMouseEvent *event)
         y_1[i] = y_;
     }
     customPlot->graph(0)->setData(x_1,y_1);
-    customPlot->graph(0)->setPen(QPen(Qt::green,1.5, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin));
+    customPlot->graph(0)->setPen(QPen(Qt::black,1.5, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin));
 
     QVector<double> x_2(101), y_2(101);
     for (int i=0; i<101; ++i)
@@ -165,14 +265,12 @@ void GraphWindow::myMoveEvent(QMouseEvent *event)
                 i*(customPlot->yAxis->range().upper-customPlot->yAxis->range().lower)/101;
     }
     customPlot->graph(1)->setData(x_2,y_2);
-    customPlot->graph(1)->setPen(QPen(Qt::green,1.5, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin));
+    customPlot->graph(1)->setPen(QPen(Qt::black,1.5, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin));
 
     customPlot->replot();
 
-    QString *str = new QString;
-    *str = QString("Hello QCustomplot!");
-    QToolTip::showText(cursor().pos(),*str);
-    delete str;
+    QString str = QString("  X: %1\n""  Y: %2").arg(QString::number(x_,10,3)).arg(QString::number(y_,10,3));
+    QToolTip::showText(cursor().pos(),str);
 }
 
 void GraphWindow::easterEggDataSlot()
@@ -189,7 +287,7 @@ void GraphWindow::easterEggDataSlot()
             point_y[i/2] = (1.2-stringList[i].toShort()/1080.0*2.4);
             point_x[i/2] = (stringList[i+1].toShort()/1920.0*16);
         }
-        customPlot->graph(4)->setData(point_x,point_y);
+        customPlot->graph(2)->setData(point_x,point_y);
         customPlot->replot();
     }
     // the easter egg is finished
@@ -197,17 +295,97 @@ void GraphWindow::easterEggDataSlot()
         frameCount = 0;
         isPlayEasterEgg = 0;
         textStream->seek(0);
+        customPlot->graph(2)->data().clear();
+        customPlot->replot();
         easterEggTimer->stop();
     }
 }
 
 void GraphWindow::startEasterEggSlot()
 {
+    short static PosionedCounter = 0;
     if(frameCount == 0){
         easterEggTimer->start(50);
         isPlayEasterEgg = 1;
         customPlot->xAxis->setRange(16, 16, Qt::AlignRight);
         customPlot->replot();
+        if((PosionedCounter++)%2 == 0)
+            QMessageBox::information(this,"","恭喜你发现了宝藏！",NULL);
+        else
+            QMessageBox::information(this,"","中毒了吧！再看一遍？",NULL);
+    }
+}
+
+void GraphWindow::DecodeCANMsg(QString string)
+{
+    qDebug()<<"I get msg: "<<string<<endl;
+    // decode actual pos,velocity,Id,Iq from CAN Msg
+
+}
+
+void GraphWindow::sendCmdCANMsg(void)
+{
+    static CanMessage msg;
+    static uint8_t data_int[8];
+    static uint32_t address;
+    static bool en_extended = false;
+    static uint8_t dlc = 8;
+    if((checkBoxStateBus & 196608) >> 16 == 2){
+//        Pos Cmd Mode
+        data_int[0] = 0;
+        data_int[1] = 0;
+        data_int[2] = 0;
+        data_int[3] = 0;
+        data_int[4] = 0;
+        data_int[5] = 0;
+        data_int[6] = 0;
+        data_int[7] = 0;
+        address = 0x121;
+    }else{
+//        Velocity Cmd Mode
+        data_int[0] = 0;
+        data_int[1] = 0;
+        data_int[2] = 0;
+        data_int[3] = 0;
+        data_int[4] = 0;
+        data_int[5] = 0;
+        data_int[6] = 0;
+        data_int[7] = 0;
+        address = 0x212;
+    }
+
+    // If address is beyond std address namespace, force extended
+    if(address > 0x7ff)
+    {
+        en_extended = true;
+    }
+
+    msg.setData(data_int[0],data_int[1],data_int[2],data_int[3],data_int[4],data_int[5],data_int[6],data_int[7]);
+    msg.setId(address);
+    msg.setLength(dlc);
+
+    msg.setExtended(en_extended);
+    msg.setRTR(false);
+    msg.setErrorFrame(false);
+
+    CanTrace *trace = _backend.getTrace();
+    foreach (CanInterfaceId ifid, _backend.getInterfaceList()) {
+        CanInterface *intf = _backend.getInterfaceById(ifid);
+        int tx_ret = intf->sendMessage(msg);
+        if (tx_ret) {
+            //msg.setTX(true);
+            //trace->enqueueMessage(msg, false);
+        }
+
+        char outmsg[256];
+        snprintf(outmsg, 256, "Send %s [%s] to %d on port %s [ext=%u rtr=%u err=%u] ",
+                 tx_ret ? "ok" : "err",msg.getDataHexString().toLocal8Bit().constData(), msg.getId(), _backend.getInterfaceById(ifid)->getName().toLocal8Bit().constData(),
+                 msg.isExtended(), msg.isRTR(), msg.isErrorFrame());
+
+        if (tx_ret)
+            log_info(outmsg);
+        else
+            log_error(outmsg);
     }
 }
 

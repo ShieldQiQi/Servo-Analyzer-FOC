@@ -57,7 +57,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->action_Trace_View, SIGNAL(triggered()), this, SLOT(createTraceWindow()));
     connect(ui->actionLog_View, SIGNAL(triggered()), this, SLOT(addLogWidget()));
     connect(ui->actionGraph_View, SIGNAL(triggered()), this, SLOT(createGraphWindow()));
-    connect(ui->actionYes_U_finally_find_me, SIGNAL(triggered()), this, SLOT(emitEasterEggTriggered()));
     connect(ui->actionGraph_View_2, SIGNAL(triggered()), this, SLOT(addGraphWidget()));
     connect(ui->actionSetup, SIGNAL(triggered()), this, SLOT(showSetupDialog()));
     connect(ui->actionTransmit_View, SIGNAL(triggered()), this, SLOT(addRawTxWidget()));
@@ -73,7 +72,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionSave_Trace_to_file, SIGNAL(triggered(bool)), this, SLOT(saveTraceToFile()));
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
 
-
 #if defined(__linux__)
     Backend::instance().addCanDriver(*(new SocketCanDriver(Backend::instance())));
 #else
@@ -85,11 +83,52 @@ MainWindow::MainWindow(QWidget *parent) :
 
     _setupDlg = new SetupDialog(Backend::instance(), 0); // NOTE: must be called after drivers/plugins are initialized
 
+    // note!!!!!!!!! these signal-slots below must be placed behind of the "newWorkspace()"
+
+    // the easter egg
+    connect(ui->actionYes_U_finally_find_me, SIGNAL(triggered()),
+            this->graphWindow,SLOT(startEasterEggSlot()));
+    // the checkbox
+    connect(this->cmdStatusPanelWindow->ui->checkBox_1,SIGNAL(stateChanged(int)),
+            this->graphWindow,SLOT(tarPosDataSlot(int)));
+    connect(this->cmdStatusPanelWindow->ui->checkBox_2,SIGNAL(stateChanged(int)),
+            this->graphWindow,SLOT(actuPosDataSlot(int)));
+    connect(this->cmdStatusPanelWindow->ui->checkBox_3,SIGNAL(stateChanged(int)),
+            this->graphWindow,SLOT(actuVelDataSlot(int)));
+    connect(this->cmdStatusPanelWindow->ui->checkBox_4,SIGNAL(stateChanged(int)),
+            this->graphWindow,SLOT(tarVelDataSlot(int)));
+    connect(this->cmdStatusPanelWindow->ui->checkBox_5,SIGNAL(stateChanged(int)),
+            this->graphWindow,SLOT(tarIqDataSlot(int)));
+    connect(this->cmdStatusPanelWindow->ui->checkBox_6,SIGNAL(stateChanged(int)),
+            this->graphWindow,SLOT(actuIqDataSlot(int)));
+    connect(this->cmdStatusPanelWindow->ui->checkBox_7,SIGNAL(stateChanged(int)),
+            this->graphWindow,SLOT(tarIdDataSlot(int)));
+    connect(this->cmdStatusPanelWindow->ui->checkBox_8,SIGNAL(stateChanged(int)),
+            this->graphWindow,SLOT(actuIdDataSlot(int)));
+    connect(this->cmdStatusPanelWindow->ui->checkBox_9,SIGNAL(stateChanged(int)),
+            this->graphWindow,SLOT(posModeChanged(int)));
+    connect(this->cmdStatusPanelWindow->ui->checkBox_10,SIGNAL(stateChanged(int)),
+            this->graphWindow,SLOT(dynamicModeChanged(int)));
+    connect(this->cmdStatusPanelWindow->ui->checkBox_11,SIGNAL(stateChanged(int)),
+            this->graphWindow,SLOT(manualModeChanged(int)));
+    // the slider
+    connect(this->cmdStatusPanelWindow->ui->horizontalSlider_X,SIGNAL(valueChanged(int)),
+            this->graphWindow,SLOT(sliderXValueChanged(int)));
+    connect(this->cmdStatusPanelWindow->ui->horizontalSlider_position,SIGNAL(valueChanged(int)),
+            this->graphWindow,SLOT(sliderPosValueChanged(int)));
+    connect(this->cmdStatusPanelWindow->ui->horizontalSlider_velocity,SIGNAL(valueChanged(int)),
+            this->graphWindow,SLOT(sliderVelValueChanged(int)));
+
+    connect(this->traceWindow,SIGNAL(sendCANMsg(QString)),this->graphWindow,SLOT(DecodeCANMsg(QString)));
+
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete traceWindow;
+    delete graphWindow;
+    delete cmdStatusPanelWindow;
 }
 
 void MainWindow::updateMeasurementActions()
@@ -349,7 +388,8 @@ QMainWindow *MainWindow::createTraceWindow(QString title)
         title = "Trace";
     }
     QMainWindow *mm = createTab(title);
-    mm->setCentralWidget(new TraceWindow(mm, backend()));
+    traceWindow = new TraceWindow(mm, backend());
+    mm->setCentralWidget(traceWindow);
     addLogWidget(mm);
 
     ui->mainTabs->setCurrentWidget(mm);
@@ -379,11 +419,6 @@ void MainWindow::addGraphWidget(QMainWindow *parent)
     parent->addDockWidget(Qt::RightDockWidgetArea, dock);
 }
 
-void MainWindow::emitEasterEggTriggered(void)
-{
-    graphWindow->startEasterEggSlot();
-}
-
 void MainWindow::addRawTxWidget(QMainWindow *parent)
 {
     if (!parent) {
@@ -400,7 +435,8 @@ void MainWindow::addCmdStatusPanelWidget(QMainWindow *parent)
         parent = currentTab();
     }
     QDockWidget *dock = new QDockWidget("CmdStatusPanel", parent);
-    dock->setWidget(new CmdStatusPanelWindow(dock, backend()));
+    cmdStatusPanelWindow = new CmdStatusPanelWindow(dock, backend());
+    dock->setWidget(cmdStatusPanelWindow);
     parent->addDockWidget(Qt::LeftDockWidgetArea, dock);
 }
 

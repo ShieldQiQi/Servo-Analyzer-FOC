@@ -57,6 +57,7 @@
 #define __UINTMAX_TYPE__ long long unsigned int
 #define __DEC32_EPSILON__ 1E-6DF
 #define __FLT_EVAL_METHOD_TS_18661_3__ 0
+#define __OPTIMIZE__ 1
 #define __UINT32_MAX__ 0xffffffffU
 #define __GXX_EXPERIMENTAL_CXX0X__ 1
 #define __LDBL_MAX_EXP__ 16384
@@ -159,7 +160,6 @@
 #define __cpp_initializer_lists 200806
 #define __FLT32_MAX_EXP__ 128
 #define __cpp_hex_float 201603
-#define __GCC_HAVE_DWARF2_CFI_ASM 1
 #define __GXX_ABI_VERSION 1011
 #define __FLT128_HAS_INFINITY__ 1
 #define __FLT_MIN_EXP__ (-125)
@@ -180,7 +180,6 @@
 #define __cdecl __attribute__((__cdecl__))
 #define __FLT32_MIN__ 1.17549435082228750796873653722224568e-38F32
 #define __UINT8_TYPE__ unsigned char
-#define __NO_INLINE__ 1
 #define __FLT_MANT_DIG__ 24
 #define __LDBL_DECIMAL_DIG__ 21
 #define __VERSION__ "7.3.0"

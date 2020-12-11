@@ -1,4 +1,4 @@
-/*
+﻿/*
 
   Copyright (c) 2015, 2016 Hubert Denkmair <hubert@denkmair.de>
 
@@ -23,6 +23,7 @@
 #include <iostream>
 #include <stddef.h>
 #include <core/Backend.h>
+#include <QDebug>
 
 LinearTraceViewModel::LinearTraceViewModel(Backend &backend)
   : BaseTraceViewModel(backend)
@@ -117,6 +118,8 @@ QVariant LinearTraceViewModel::data_DisplayRole(const QModelIndex &index, int ro
         if (msg_id>1) {
             const CanMessage *prev_msg = trace()->getMessage(msg_id-1);
             return data_DisplayRole_Message(index, role, *msg, *prev_msg);
+
+            emit sendCANMsg(msg->getIdString()+msg->getDataHexString());
         } else {
             return data_DisplayRole_Message(index, role, *msg, CanMessage());
         }
