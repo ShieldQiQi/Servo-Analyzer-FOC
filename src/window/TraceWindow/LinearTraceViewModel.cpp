@@ -117,9 +117,15 @@ QVariant LinearTraceViewModel::data_DisplayRole(const QModelIndex &index, int ro
     } else if (id) {
         if (msg_id>1) {
             const CanMessage *prev_msg = trace()->getMessage(msg_id-1);
+            static double lastTimeStamp = 0;
+            static double currentTimeStamp = 0;
+            currentTimeStamp = msg->getFloatTimestamp()-backend()->getTimestampAtMeasurementStart();
+            if(currentTimeStamp > lastTimeStamp){
+                qDebug() << currentTimeStamp<< " "<< msg->getDataHexString() <<endl;
+                emit sendCANMsg(msg->getDataHexString());
+                lastTimeStamp = currentTimeStamp;
+            }
             return data_DisplayRole_Message(index, role, *msg, *prev_msg);
-
-            emit sendCANMsg(msg->getIdString()+msg->getDataHexString());
         } else {
             return data_DisplayRole_Message(index, role, *msg, CanMessage());
         }
@@ -137,6 +143,7 @@ QVariant LinearTraceViewModel::data_TextColorRole(const QModelIndex &index, int 
     if (id & 0x80000000) { // CanSignal row
         int msg_id = (id & ~0x80000000)-1;
         const CanMessage *msg = trace()->getMessage(msg_id);
+        //qDebug()<<msg->getIdString()+msg->getDataHexString()<<endl;
         if (msg) {
             return data_TextColorRole_Signal(index, role, *msg);
         }

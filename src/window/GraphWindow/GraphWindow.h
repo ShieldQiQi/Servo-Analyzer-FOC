@@ -25,7 +25,7 @@
 #include <core/MeasurementSetup.h>
 #include <QFile>
 #include <QTextStream>
-
+#include <QQueue>
 #include <qcustomplot/qcustomplot.h>
 #include <QDebug>
 
@@ -72,15 +72,20 @@ public:
 
     uint32_t checkBoxStateBus = 0;
 
+    // manual mode parameters
     float xAxisRange = 5;
     float targetPos = 0.0;
     float targetVel = 0.0;
-    float actualPos = 0.0;
-    float actualVel = 0.0;
-    float targetId = 0.0;
-    float targetIq = 0.0;
-    float actualId = 0.0;
-    float actualIq = 0.0;
+
+    // parameters from devices
+    QQueue<float> targetPosQueue;
+    QQueue<float> actualPosQueue;
+    QQueue<float> targetVelQueue;
+    QQueue<float> actualVelQueue;
+    QQueue<float> targetIdQueue;
+    QQueue<float> actualIdQueue;
+    QQueue<float> targetIqQueue;
+    QQueue<float> actualIqQueue;
 
     void sendCmdCANMsg(void);
 

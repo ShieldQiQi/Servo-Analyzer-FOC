@@ -68,7 +68,7 @@ TraceWindow::TraceWindow(QWidget *parent, Backend &backend) :
     setTimestampMode(timestamp_mode_delta);
 
     connect(_linearTraceViewModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(rowsInserted(QModelIndex,int,int)));
-
+    connect(_linearTraceViewModel, SIGNAL(sendCANMsg(QString)), this, SLOT(passCANMsg(QString)));
 }
 
 TraceWindow::~TraceWindow()
@@ -181,6 +181,11 @@ void TraceWindow::rowsInserted(const QModelIndex &parent, int first, int last)
         ui->tree->scrollToBottom();
     }
 
+}
+
+void TraceWindow::passCANMsg(QString string)
+{
+    emit sendCANMsg(string);
 }
 
 void TraceWindow::on_cbAggregated_stateChanged(int i)

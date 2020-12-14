@@ -1,4 +1,4 @@
-/*
+﻿/*
 
   Copyright (c) 2015, 2016 Hubert Denkmair <hubert@denkmair.de>
 
@@ -28,6 +28,7 @@
 #include <core/CanTrace.h>
 #include <core/CanMessage.h>
 #include <core/CanDbMessage.h>
+//#include <QDebug>
 
 BaseTraceViewModel::BaseTraceViewModel(Backend &backend)
 {
@@ -113,6 +114,7 @@ QVariant BaseTraceViewModel::formatTimestamp(timestamp_mode_t mode, const CanMes
 
         double t_current = currentMsg.getFloatTimestamp();
         double t_last = lastMsg.getFloatTimestamp();
+//        qDebug()<<t_current-t_last<<endl;
         if (t_last==0) {
             return QVariant();
         } else {

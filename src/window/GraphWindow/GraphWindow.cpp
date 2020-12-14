@@ -99,7 +99,7 @@ GraphWindow::GraphWindow(QWidget *parent, Backend &backend) :
     // setup a timer that repeatedly calls MainWindow::realtimeDataSlot:
     dataTimer = new QTimer(this);
     connect(dataTimer, SIGNAL(timeout()), this, SLOT(realtimeDataSlot()));
-    dataTimer->start(0); // Interval 0 means to refresh as fast as possible
+    dataTimer->start(10); // Interval 0 means to refresh as fast as possible
 
     easterEggTimer = new QTimer(this);
     connect(easterEggTimer, SIGNAL(timeout()), this, SLOT(easterEggDataSlot()));
@@ -113,43 +113,43 @@ void GraphWindow::realtimeDataSlot()
 {
     if(!isPlayEasterEgg)
     {
-        static QTime time(QTime::currentTime());
-        // calculate two new data points:
-        double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
-        static double lastPointKey = 0;
-        if (key-lastPointKey > 0.010) // at most add point every 10 ms
+        // add data to lines:
+        static double key = 0;
+        if(((checkBoxStateBus & 786432) >> 18 == 2) && !targetPosQueue.isEmpty()
+                && !actualPosQueue.isEmpty() && !targetVelQueue.isEmpty()
+                && !actualVelQueue.isEmpty() && !targetIqQueue.isEmpty() && !actualIqQueue.isEmpty())
         {
-            // add data to lines:
-            velocity = qSin(key);
+            key += 0.01;
 
-            if((checkBoxStateBus & 786432) >> 18 == 2)
-            {
-                if((checkBoxStateBus & 3) == 2)
-                    tar_Pos->addData(key,targetPos);
-                if((checkBoxStateBus & 12) >> 2 == 2)
-                    actual_Pos->addData(key,0.5*velocity);
-                if((checkBoxStateBus & 48) >> 4 == 2)
-                    tar_Vel->addData(key,targetVel);
-                if((checkBoxStateBus & 192) >> 6 == 2)
-                    actual_Vel->addData(key,0.8*velocity);
-                if((checkBoxStateBus & 768) >> 8 == 2)
-                    tar_Iq->addData(key,0.6);
-                if((checkBoxStateBus & 3072) >> 10 == 2)
-                    actual_Iq->addData(key,0.6*velocity);
-                if((checkBoxStateBus & 12288) >> 12 == 2)
-                    tar_Id->addData(key,0.7);
-                if((checkBoxStateBus & 49152) >> 14 == 2)
-                    actual_Id->addData(key,1.2*velocity);
+            if((checkBoxStateBus & 3) == 2)
+                tar_Pos->addData(key,targetPosQueue.front());
+            if((checkBoxStateBus & 12) >> 2 == 2)
+                actual_Pos->addData(key,actualPosQueue.front());
+            if((checkBoxStateBus & 48) >> 4 == 2)
+                tar_Vel->addData(key,targetVelQueue.front());
+            if((checkBoxStateBus & 192) >> 6 == 2)
+                actual_Vel->addData(key,actualVelQueue.front());
+            if((checkBoxStateBus & 768) >> 8 == 2)
+                tar_Iq->addData(key,targetIqQueue.front());
+            if((checkBoxStateBus & 3072) >> 10 == 2)
+                actual_Iq->addData(key,actualIqQueue.front());
+//                if((checkBoxStateBus & 12288) >> 12 == 2)
+//                    tar_Id->addData(key,targetIdQueue.front());
+//                if((checkBoxStateBus & 49152) >> 14 == 2)
+//                    actual_Id->addData(key,actualIdQueue.front());
 
-                // rescale value (vertical) axis to fit the current data:
-                tar_Pos->rescaleValueAxis(true);
+            targetPosQueue.pop_front();
+            actualPosQueue.pop_front();
+            targetVelQueue.pop_front();
+            actualVelQueue.pop_front();
+            targetIqQueue.pop_front();
+            actualIqQueue.pop_front();
 
-                // make key axis range scroll with the data (at a constant range size of 8):
-                customPlot->xAxis->setRange(key, xAxisRange, Qt::AlignRight);
-                customPlot->replot();
-            }
-
-            lastPointKey = key;
+            // rescale value (vertical) axis to fit the current data:
+            tar_Pos->rescaleValueAxis(true);
+            // make key axis range scroll with the data (at a constant range size of 8):
+            customPlot->xAxis->setRange(key, xAxisRange, Qt::AlignRight);
+            customPlot->replot();
         }
     }
 }
@@ -318,9 +318,14 @@ void GraphWindow::startEasterEggSlot()
 
 void GraphWindow::DecodeCANMsg(QString string)
 {
-    qDebug()<<"I get msg: "<<string<<endl;
     // decode actual pos,velocity,Id,Iq from CAN Msg
-
+    QStringList sections = string.split(QRegExp("[ ,*/^]"));
+    targetPosQueue.append((sections[0]+sections[1]).toInt(nullptr,16));
+    actualPosQueue.append((sections[2]+sections[3]).toInt(nullptr,16));
+    targetVelQueue.append(sections[4].toInt(nullptr,16));
+    actualVelQueue.append(sections[5].toInt(nullptr,16));
+    targetIqQueue.append(sections[6].toInt(nullptr,16));
+    actualIqQueue.append(sections[7].toInt(nullptr,16));
 }
 
 void GraphWindow::sendCmdCANMsg(void)

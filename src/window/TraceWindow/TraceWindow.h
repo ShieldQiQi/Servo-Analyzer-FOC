@@ -55,8 +55,12 @@ public:
     virtual bool saveXML(Backend &backend, QDomDocument &xml, QDomElement &root);
     virtual bool loadXML(Backend &backend, QDomElement &el);
 
+signals:
+    void sendCANMsg(QString string);
+
 public slots:
     void rowsInserted(const QModelIndex & parent, int first, int last);
+    void passCANMsg(QString string);
 
 private slots:
     void on_cbAggregated_stateChanged(int i);
