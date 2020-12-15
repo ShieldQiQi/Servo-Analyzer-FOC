@@ -99,7 +99,7 @@ GraphWindow::GraphWindow(QWidget *parent, Backend &backend) :
     // setup a timer that repeatedly calls MainWindow::realtimeDataSlot:
     dataTimer = new QTimer(this);
     connect(dataTimer, SIGNAL(timeout()), this, SLOT(realtimeDataSlot()));
-    dataTimer->start(10); // Interval 0 means to refresh as fast as possible
+    dataTimer->start(0); // Interval 0 means to refresh as fast as possible
 
     easterEggTimer = new QTimer(this);
     connect(easterEggTimer, SIGNAL(timeout()), this, SLOT(easterEggDataSlot()));
@@ -113,44 +113,11 @@ void GraphWindow::realtimeDataSlot()
 {
     if(!isPlayEasterEgg)
     {
-        // add data to lines:
-        static double key = 0;
-        if(((checkBoxStateBus & 786432) >> 18 == 2) && !targetPosQueue.isEmpty()
-                && !actualPosQueue.isEmpty() && !targetVelQueue.isEmpty()
-                && !actualVelQueue.isEmpty() && !targetIqQueue.isEmpty() && !actualIqQueue.isEmpty())
-        {
-            key += 0.01;
+        // rescale value (vertical) axis to fit the current data:
+        tar_Pos->rescaleValueAxis(true);
+        // make key axis range scroll with the data (at a constant range size of 8):
 
-            if((checkBoxStateBus & 3) == 2)
-                tar_Pos->addData(key,targetPosQueue.front());
-            if((checkBoxStateBus & 12) >> 2 == 2)
-                actual_Pos->addData(key,actualPosQueue.front());
-            if((checkBoxStateBus & 48) >> 4 == 2)
-                tar_Vel->addData(key,targetVelQueue.front());
-            if((checkBoxStateBus & 192) >> 6 == 2)
-                actual_Vel->addData(key,actualVelQueue.front());
-            if((checkBoxStateBus & 768) >> 8 == 2)
-                tar_Iq->addData(key,targetIqQueue.front());
-            if((checkBoxStateBus & 3072) >> 10 == 2)
-                actual_Iq->addData(key,actualIqQueue.front());
-//                if((checkBoxStateBus & 12288) >> 12 == 2)
-//                    tar_Id->addData(key,targetIdQueue.front());
-//                if((checkBoxStateBus & 49152) >> 14 == 2)
-//                    actual_Id->addData(key,actualIdQueue.front());
-
-            targetPosQueue.pop_front();
-            actualPosQueue.pop_front();
-            targetVelQueue.pop_front();
-            actualVelQueue.pop_front();
-            targetIqQueue.pop_front();
-            actualIqQueue.pop_front();
-
-            // rescale value (vertical) axis to fit the current data:
-            tar_Pos->rescaleValueAxis(true);
-            // make key axis range scroll with the data (at a constant range size of 8):
-            customPlot->xAxis->setRange(key, xAxisRange, Qt::AlignRight);
-            customPlot->replot();
-        }
+        customPlot->replot();
     }
 }
 
@@ -229,13 +196,15 @@ void GraphWindow::sliderXValueChanged(int value)
 void GraphWindow::sliderPosValueChanged(int value)
 {
     targetPos = value/99.0*360;
-    sendCmdCANMsg();
+    if(((checkBoxStateBus & 3145728) >> 20 == 2) && ((checkBoxStateBus & 196608) >> 16 == 2))
+        sendCmdCANMsg();
 }
 
 void GraphWindow::sliderVelValueChanged(int value)
 {
     targetVel = value/99.0*20;
-    sendCmdCANMsg();
+    if(((checkBoxStateBus & 3145728) >> 20 == 2) && ((checkBoxStateBus & 196608) >> 16 == 0))
+        sendCmdCANMsg();
 }
 
 void GraphWindow::myMoveEvent(QMouseEvent *event)
@@ -322,10 +291,45 @@ void GraphWindow::DecodeCANMsg(QString string)
     QStringList sections = string.split(QRegExp("[ ,*/^]"));
     targetPosQueue.append((sections[0]+sections[1]).toInt(nullptr,16));
     actualPosQueue.append((sections[2]+sections[3]).toInt(nullptr,16));
-    targetVelQueue.append(sections[4].toInt(nullptr,16));
-    actualVelQueue.append(sections[5].toInt(nullptr,16));
-    targetIqQueue.append(sections[6].toInt(nullptr,16));
-    actualIqQueue.append(sections[7].toInt(nullptr,16));
+    targetVelQueue.append(sections[4].toInt(nullptr,16)/10.0);
+    actualVelQueue.append(sections[5].toInt(nullptr,16)/10.0);
+    targetIqQueue.append(sections[6].toInt(nullptr,16)/10.0);
+    actualIqQueue.append(sections[7].toInt(nullptr,16)/10.0);
+
+    velocity = sections[5].toInt(nullptr,16)/10.0;
+
+    // add data to lines:
+    static double key = 0;
+    if(((checkBoxStateBus & 786432) >> 18 == 2) && !targetPosQueue.isEmpty())
+    {
+        qDebug()<<targetPosQueue.size()<<endl;
+        key += 0.04;
+
+        if((checkBoxStateBus & 3) == 2)
+            tar_Pos->addData(key,targetPosQueue.front());
+        if((checkBoxStateBus & 12) >> 2 == 2)
+            actual_Pos->addData(key,actualPosQueue.front());
+        if((checkBoxStateBus & 48) >> 4 == 2)
+            tar_Vel->addData(key,targetVelQueue.front()/10.0);
+        if((checkBoxStateBus & 192) >> 6 == 2)
+            actual_Vel->addData(key,actualVelQueue.front()/10.0);
+        if((checkBoxStateBus & 768) >> 8 == 2)
+            tar_Iq->addData(key,targetIqQueue.front()/10.0);
+        if((checkBoxStateBus & 3072) >> 10 == 2)
+            actual_Iq->addData(key,actualIqQueue.front()/10.0);
+//                if((checkBoxStateBus & 12288) >> 12 == 2)
+//                    tar_Id->addData(key,targetIdQueue.front());
+//                if((checkBoxStateBus & 49152) >> 14 == 2)
+//                    actual_Id->addData(key,actualIdQueue.front());
+        targetPosQueue.pop_front();
+        actualPosQueue.pop_front();
+        targetVelQueue.pop_front();
+        actualVelQueue.pop_front();
+        targetIqQueue.pop_front();
+        actualIqQueue.pop_front();
+
+        customPlot->xAxis->setRange(key, xAxisRange, Qt::AlignRight);
+    }
 }
 
 void GraphWindow::sendCmdCANMsg(void)
@@ -337,8 +341,8 @@ void GraphWindow::sendCmdCANMsg(void)
     static uint8_t dlc = 8;
     if((checkBoxStateBus & 196608) >> 16 == 2){
 //        Pos Cmd Mode
-        data_int[0] = 0;
-        data_int[1] = 0;
+        data_int[0] = (uint8_t)(((uint16_t)(targetPos*10))>>8);
+        data_int[1] = (uint8_t)((uint16_t)(targetPos*10));
         data_int[2] = 0;
         data_int[3] = 0;
         data_int[4] = 0;

@@ -23,7 +23,7 @@
 #include <iostream>
 #include <stddef.h>
 #include <core/Backend.h>
-#include <QDebug>
+//#include <QDebug>
 
 LinearTraceViewModel::LinearTraceViewModel(Backend &backend)
   : BaseTraceViewModel(backend)
@@ -120,8 +120,9 @@ QVariant LinearTraceViewModel::data_DisplayRole(const QModelIndex &index, int ro
             static double lastTimeStamp = 0;
             static double currentTimeStamp = 0;
             currentTimeStamp = msg->getFloatTimestamp()-backend()->getTimestampAtMeasurementStart();
-            if(currentTimeStamp > lastTimeStamp){
-                qDebug() << currentTimeStamp<< " "<< msg->getDataHexString() <<endl;
+//            qDebug()<<msg->getId()<<endl;
+            if((currentTimeStamp > lastTimeStamp) && msg->getId() == 801){
+//                qDebug() << currentTimeStamp<< " "<< msg->getDataHexString() <<endl;
                 emit sendCANMsg(msg->getDataHexString());
                 lastTimeStamp = currentTimeStamp;
             }
