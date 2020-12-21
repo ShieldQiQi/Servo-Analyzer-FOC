@@ -121,6 +121,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(this->traceWindow,SIGNAL(sendCANMsg(QString)),this->graphWindow,SLOT(DecodeCANMsg(QString)));
 
+    this->cmdStatusPanelWindow->ui->checkBox_1->setCheckState(Qt::Checked);
+    this->cmdStatusPanelWindow->ui->checkBox_2->setCheckState(Qt::Checked);
+    this->cmdStatusPanelWindow->ui->checkBox_9->setCheckState(Qt::Checked);
+    this->cmdStatusPanelWindow->ui->checkBox_10->setCheckState(Qt::Checked);
+    this->cmdStatusPanelWindow->ui->checkBox_11->setCheckState(Qt::Checked);
+
 }
 
 MainWindow::~MainWindow()

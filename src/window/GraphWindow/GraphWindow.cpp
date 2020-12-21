@@ -121,6 +121,55 @@ void GraphWindow::realtimeDataSlot()
     }
 }
 
+void GraphWindow::DecodeCANMsg(QString string)
+{
+    // decode actual pos,velocity,Id,Iq from CAN Msg
+    QStringList sections = string.split(QRegExp("[ ,*/^]"));
+    targetPosQueue.append((sections[0]+sections[1]).toInt(nullptr,16));
+    actualPosQueue.append((sections[2]+sections[3]).toInt(nullptr,16));
+    targetVelQueue.append(sections[4].toInt(nullptr,16)/10.0);
+    actualVelQueue.append(sections[5].toInt(nullptr,16)/10.0);
+    targetIqQueue.append(sections[6].toInt(nullptr,16)/10.0);
+    actualIqQueue.append(sections[7].toInt(nullptr,16)/10.0);
+
+    velocity = sections[5].toInt(nullptr,16)/10.0;
+
+    // add data to lines:
+    static double key = 0;
+    if(!targetPosQueue.isEmpty())
+    {
+//        qDebug()<<targetPosQueue.size()<<endl;
+        key += 0.04;
+
+        if((checkBoxStateBus & 3) == 2)
+            tar_Pos->addData(key,targetPosQueue.front());
+        if((checkBoxStateBus & 12) >> 2 == 2)
+            actual_Pos->addData(key,actualPosQueue.front());
+        if((checkBoxStateBus & 48) >> 4 == 2)
+            tar_Vel->addData(key,targetVelQueue.front()/10.0);
+        if((checkBoxStateBus & 192) >> 6 == 2)
+            actual_Vel->addData(key,actualVelQueue.front()/10.0);
+        if((checkBoxStateBus & 768) >> 8 == 2)
+            tar_Iq->addData(key,targetIqQueue.front()/10.0);
+        if((checkBoxStateBus & 3072) >> 10 == 2)
+            actual_Iq->addData(key,actualIqQueue.front()/10.0);
+//                if((checkBoxStateBus & 12288) >> 12 == 2)
+//                    tar_Id->addData(key,targetIdQueue.front());
+//                if((checkBoxStateBus & 49152) >> 14 == 2)
+//                    actual_Id->addData(key,actualIdQueue.front());
+        targetPosQueue.pop_front();
+        actualPosQueue.pop_front();
+        targetVelQueue.pop_front();
+        actualVelQueue.pop_front();
+        targetIqQueue.pop_front();
+        actualIqQueue.pop_front();
+
+        if(((checkBoxStateBus & 786432) >> 18 == 2))
+            customPlot->xAxis->setRange(key, xAxisRange, Qt::AlignRight);
+
+    }
+}
+
 // save memory, from me on!
 void GraphWindow::tarPosDataSlot(int state)
 {
@@ -282,53 +331,6 @@ void GraphWindow::startEasterEggSlot()
             QMessageBox::information(this,"","恭喜你发现了宝藏！",NULL);
         else
             QMessageBox::information(this,"","中毒了吧！再看一遍？",NULL);
-    }
-}
-
-void GraphWindow::DecodeCANMsg(QString string)
-{
-    // decode actual pos,velocity,Id,Iq from CAN Msg
-    QStringList sections = string.split(QRegExp("[ ,*/^]"));
-    targetPosQueue.append((sections[0]+sections[1]).toInt(nullptr,16));
-    actualPosQueue.append((sections[2]+sections[3]).toInt(nullptr,16));
-    targetVelQueue.append(sections[4].toInt(nullptr,16)/10.0);
-    actualVelQueue.append(sections[5].toInt(nullptr,16)/10.0);
-    targetIqQueue.append(sections[6].toInt(nullptr,16)/10.0);
-    actualIqQueue.append(sections[7].toInt(nullptr,16)/10.0);
-
-    velocity = sections[5].toInt(nullptr,16)/10.0;
-
-    // add data to lines:
-    static double key = 0;
-    if(((checkBoxStateBus & 786432) >> 18 == 2) && !targetPosQueue.isEmpty())
-    {
-        qDebug()<<targetPosQueue.size()<<endl;
-        key += 0.04;
-
-        if((checkBoxStateBus & 3) == 2)
-            tar_Pos->addData(key,targetPosQueue.front());
-        if((checkBoxStateBus & 12) >> 2 == 2)
-            actual_Pos->addData(key,actualPosQueue.front());
-        if((checkBoxStateBus & 48) >> 4 == 2)
-            tar_Vel->addData(key,targetVelQueue.front()/10.0);
-        if((checkBoxStateBus & 192) >> 6 == 2)
-            actual_Vel->addData(key,actualVelQueue.front()/10.0);
-        if((checkBoxStateBus & 768) >> 8 == 2)
-            tar_Iq->addData(key,targetIqQueue.front()/10.0);
-        if((checkBoxStateBus & 3072) >> 10 == 2)
-            actual_Iq->addData(key,actualIqQueue.front()/10.0);
-//                if((checkBoxStateBus & 12288) >> 12 == 2)
-//                    tar_Id->addData(key,targetIdQueue.front());
-//                if((checkBoxStateBus & 49152) >> 14 == 2)
-//                    actual_Id->addData(key,actualIdQueue.front());
-        targetPosQueue.pop_front();
-        actualPosQueue.pop_front();
-        targetVelQueue.pop_front();
-        actualVelQueue.pop_front();
-        targetIqQueue.pop_front();
-        actualIqQueue.pop_front();
-
-        customPlot->xAxis->setRange(key, xAxisRange, Qt::AlignRight);
     }
 }
 
